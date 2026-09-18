@@ -1,6 +1,6 @@
 import React from 'react';
 import { useApp } from '../context/AppContext';
-import { DollarSign, Plus, ArrowDownRight, CreditCard, ShieldCheck, CheckCircle2 } from 'lucide-react';
+import { DollarSign, Plus, CreditCard, ShieldCheck, CheckCircle2, Calendar, Clock, Phone, MapPin } from 'lucide-react';
 
 export const DueView: React.FC = () => {
   const {
@@ -123,14 +123,59 @@ export const DueView: React.FC = () => {
       {/* Admin: Agent Ledgers Table */}
       {isAdmin && (
         <div className="bg-white rounded-3xl border border-purple-100/80 shadow-xs overflow-hidden">
-          <div className="p-5 border-b border-slate-100">
+          <div className="p-4 sm:p-5 border-b border-slate-100">
             <h3 className="text-sm font-extrabold text-slate-900">Agent Accounts & Due Balances</h3>
             <p className="text-xs text-slate-600 font-medium">
               Click "Clear / Record Payment" to log cash receipt from any agent
             </p>
           </div>
 
-          <div className="overflow-x-auto">
+          {/* Mobile Card View */}
+          <div className="sm:hidden divide-y divide-slate-100">
+            {agentUsers.map((agent) => (
+              <div key={agent.id} className="p-4 space-y-3">
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <h4 className="font-extrabold text-slate-900 text-sm">{agent.name}</h4>
+                    <div className="flex items-center gap-1.5 text-xs text-slate-500 mt-0.5">
+                      <Phone className="w-3 h-3 text-slate-400 shrink-0" />
+                      <span>{agent.phone}</span>
+                    </div>
+                  </div>
+                  <span
+                    className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                      agent.status === 'ACTIVE'
+                        ? 'bg-emerald-100 text-emerald-800'
+                        : agent.status === 'PENDING'
+                        ? 'bg-amber-100 text-amber-800'
+                        : 'bg-rose-100 text-rose-800'
+                    }`}
+                  >
+                    {agent.status}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between text-xs pt-1 border-t border-slate-50">
+                  <div>
+                    <span className="text-slate-500 block text-[10px] uppercase font-semibold">Outstanding Due</span>
+                    <span className="font-extrabold text-rose-600 text-base">
+                      ৳{agent.currentDue.toLocaleString()}
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => handleOpenPaymentForAgent(agent)}
+                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold text-xs border border-emerald-200 transition-colors cursor-pointer"
+                  >
+                    <DollarSign className="w-3.5 h-3.5" />
+                    <span>Record Payment</span>
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop Table View */}
+          <div className="hidden sm:block overflow-x-auto">
             <table className="w-full text-xs text-left">
               <thead className="bg-slate-50 text-slate-600 font-bold border-b border-slate-200">
                 <tr>
@@ -185,7 +230,7 @@ export const DueView: React.FC = () => {
 
       {/* Payment History Audit Table */}
       <div className="bg-white rounded-3xl border border-purple-100/80 shadow-xs overflow-hidden">
-        <div className="p-5 border-b border-slate-100">
+        <div className="p-4 sm:p-5 border-b border-slate-100">
           <h3 className="text-sm font-extrabold text-slate-900">Payment Collection History</h3>
           <p className="text-xs text-slate-600 font-medium">Audited records of received payments and due clearances</p>
         </div>
@@ -193,51 +238,124 @@ export const DueView: React.FC = () => {
         {relevantPayments.length === 0 ? (
           <div className="p-8 text-center text-xs text-slate-600">No payment records found.</div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-xs text-left">
-              <thead className="bg-slate-50 text-slate-600 font-bold border-b border-slate-200">
-                <tr>
-                  <th className="py-3 px-4">Date & Time</th>
-                  {isAdmin && <th className="py-3 px-4">Agent Name</th>}
-                  <th className="py-3 px-4 text-right">Amount Paid</th>
-                  <th className="py-3 px-4">Payment Method</th>
-                  <th className="py-3 px-4">Recorded By</th>
-                  <th className="py-3 px-4">Reference Note</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {relevantPayments.map((p) => (
-                  <tr key={p.id} className="hover:bg-purple-50/20 transition-colors">
-                    <td className="py-3 px-4 text-slate-600 whitespace-nowrap">
-                      <div className="font-semibold text-slate-900">{p.createdAtDate}</div>
-                      <div className="text-[10px] text-slate-600">{p.createdAtTime}</div>
-                    </td>
+          <>
+            {/* Mobile Responsive Cards (No sideways scroll, fully visible date & details) */}
+            <div className="sm:hidden divide-y divide-slate-100">
+              {relevantPayments.map((p) => {
+                const payDate = p.date || p.createdAtDate || (p.timestamp ? new Date(p.timestamp).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Recent');
+                const payTime = p.time || p.createdAtTime || (p.timestamp ? new Date(p.timestamp).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }) : '');
 
-                    {isAdmin && (
-                      <td className="py-3 px-4 font-bold text-slate-900 whitespace-nowrap">{p.agentName}</td>
-                    )}
+                return (
+                  <div key={p.id} className="p-4 space-y-2.5 hover:bg-purple-50/20 transition-colors">
+                    {/* Top Row: Date & Time + Amount Paid */}
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-center gap-1.5 text-xs text-slate-700 font-medium">
+                        <Calendar className="w-3.5 h-3.5 text-purple-600 shrink-0" />
+                        <span className="font-bold text-slate-900">{payDate}</span>
+                        {payTime && <span className="text-slate-500 font-normal">• {payTime}</span>}
+                      </div>
+                      <div className="text-right">
+                        <span className="text-base font-extrabold text-emerald-700">
+                          ৳{p.amount.toLocaleString()}
+                        </span>
+                      </div>
+                    </div>
 
-                    <td className="py-3 px-4 text-right font-extrabold text-emerald-700 text-sm">
-                      ৳{p.amount.toLocaleString()}
-                    </td>
+                    {/* Middle Row: Agent Name (if Admin) & Payment Method Badge */}
+                    <div className="flex items-center justify-between gap-2 flex-wrap text-xs">
+                      {isAdmin ? (
+                        <div className="flex items-center gap-1 text-slate-800">
+                          <span className="text-[11px] text-slate-500 font-medium">Agent:</span>
+                          <span className="font-bold text-slate-900">{p.agentName}</span>
+                        </div>
+                      ) : (
+                        <span className="text-[11px] text-slate-500 font-mono">
+                          ID: {p.id.replace('PAY-', '')}
+                        </span>
+                      )}
 
-                    <td className="py-3 px-4">
-                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 text-purple-800">
-                        <CreditCard className="w-3 h-3" />
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 text-purple-800 whitespace-nowrap">
+                        <CreditCard className="w-3 h-3 shrink-0" />
                         <span>{p.paymentMethod}</span>
                       </span>
-                    </td>
+                    </div>
 
-                    <td className="py-3 px-4 text-slate-700 font-medium">{p.recordedBy}</td>
+                    {/* Bottom Row: Recorded By & Reference Note */}
+                    <div className="flex items-center justify-between gap-2 text-[11px] text-slate-500 pt-1.5 border-t border-slate-50">
+                      <span>
+                        Recorded By: <strong className="text-slate-700 font-semibold">{p.recordedBy}</strong>
+                      </span>
+                      {p.referenceNote && (
+                        <span className="italic text-slate-500 truncate max-w-[160px]" title={p.referenceNote}>
+                          {p.referenceNote}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
 
-                    <td className="py-3 px-4 text-slate-600 italic max-w-xs truncate">
-                      {p.referenceNote || 'Due payment'}
-                    </td>
+            {/* Desktop Table View */}
+            <div className="hidden sm:block overflow-x-auto">
+              <table className="w-full text-xs text-left">
+                <thead className="bg-slate-50 text-slate-600 font-bold border-b border-slate-200">
+                  <tr>
+                    <th className="py-3 px-4">Date & Time</th>
+                    {isAdmin && <th className="py-3 px-4">Agent Name</th>}
+                    <th className="py-3 px-4 text-right">Amount Paid</th>
+                    <th className="py-3 px-4">Payment Method</th>
+                    <th className="py-3 px-4">Recorded By</th>
+                    <th className="py-3 px-4">Reference Note</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {relevantPayments.map((p) => {
+                    const payDate = p.date || p.createdAtDate || (p.timestamp ? new Date(p.timestamp).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Recent');
+                    const payTime = p.time || p.createdAtTime || (p.timestamp ? new Date(p.timestamp).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }) : '');
+
+                    return (
+                      <tr key={p.id} className="hover:bg-purple-50/20 transition-colors">
+                        <td className="py-3 px-4 text-slate-600 whitespace-nowrap">
+                          <div className="font-semibold text-slate-900 flex items-center gap-1.5">
+                            <Calendar className="w-3.5 h-3.5 text-purple-600" />
+                            <span>{payDate}</span>
+                          </div>
+                          {payTime && (
+                            <div className="text-[10px] text-slate-500 flex items-center gap-1 mt-0.5 pl-5">
+                              <Clock className="w-3 h-3 text-slate-400" />
+                              <span>{payTime}</span>
+                            </div>
+                          )}
+                        </td>
+
+                        {isAdmin && (
+                          <td className="py-3 px-4 font-bold text-slate-900 whitespace-nowrap">{p.agentName}</td>
+                        )}
+
+                        <td className="py-3 px-4 text-right font-extrabold text-emerald-700 text-sm whitespace-nowrap">
+                          ৳{p.amount.toLocaleString()}
+                        </td>
+
+                        <td className="py-3 px-4 whitespace-nowrap">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-purple-100 text-purple-800 whitespace-nowrap">
+                            <CreditCard className="w-3 h-3 shrink-0" />
+                            <span>{p.paymentMethod}</span>
+                          </span>
+                        </td>
+
+                        <td className="py-3 px-4 text-slate-700 font-medium whitespace-nowrap">{p.recordedBy}</td>
+
+                        <td className="py-3 px-4 text-slate-600 italic max-w-xs truncate">
+                          {p.referenceNote || 'Due payment'}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </div>
     </div>

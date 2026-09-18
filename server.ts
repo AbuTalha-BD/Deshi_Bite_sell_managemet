@@ -96,6 +96,14 @@ function loadDatabase(): DatabaseSchema {
     loaded.settings.lowStockDefaultKg = 0.5;
   }
 
+  // Ensure payment dates are populated
+  if (loaded.payments) {
+    loaded.payments.forEach((p) => {
+      if (!p.createdAtDate && p.date) p.createdAtDate = p.date;
+      if (!p.createdAtTime && p.time) p.createdAtTime = p.time;
+    });
+  }
+
   saveDatabase(loaded);
   return loaded;
 }
@@ -871,6 +879,8 @@ async function startServer() {
       recordedBy: recordedBy || 'Admin Manager',
       date: dt.date,
       time: dt.time,
+      createdAtDate: dt.date,
+      createdAtTime: dt.time,
       timestamp: dt.timestamp,
     };
 
