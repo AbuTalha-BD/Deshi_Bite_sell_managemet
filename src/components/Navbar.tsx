@@ -104,11 +104,11 @@ export const Navbar: React.FC = () => {
 
             {/* Right Controls */}
             <div className="flex items-center gap-1.5 sm:gap-2.5">
-              {/* MongoDB Cloud Driver Status Button - Admin Only */}
+              {/* MongoDB Cloud Driver Status Button - Admin Only (Hidden on mobile, accessible via Menu drawer) */}
               {isAdmin && (
                 <button
                   onClick={() => setIsMongoModalOpen(true)}
-                  className={`flex items-center gap-1.5 p-2 sm:px-3 sm:py-1.5 text-xs font-semibold rounded-xl sm:rounded-full border transition-all shadow-2xs cursor-pointer ${
+                  className={`hidden md:flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-full border transition-all shadow-2xs cursor-pointer ${
                     mongoStatus?.connected
                       ? 'bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100'
                       : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-300'
@@ -119,7 +119,7 @@ export const Navbar: React.FC = () => {
                   <span className="hidden lg:inline">
                     {mongoStatus?.connected ? 'MongoDB Cloud Synced' : 'Connect MongoDB'}
                   </span>
-                  <span className="hidden sm:inline lg:hidden">MongoDB</span>
+                  <span className="lg:hidden">MongoDB</span>
                   <span
                     className={`w-1.5 h-1.5 rounded-full ${
                       mongoStatus?.connected ? 'bg-emerald-500 animate-pulse' : 'bg-amber-400'
@@ -128,18 +128,18 @@ export const Navbar: React.FC = () => {
                 </button>
               )}
 
-              {/* Connect Google Sheet Button - Admin Only */}
+              {/* Connect Google Sheet Button - Admin Only (Hidden on mobile, accessible via Menu drawer) */}
               {isAdmin && (
                 <button
                   onClick={() => setIsGoogleSheetModalOpen(true)}
-                  className="flex items-center gap-1.5 p-2 sm:px-3 sm:py-1.5 text-xs font-semibold text-slate-700 bg-slate-50 hover:bg-purple-50 hover:text-purple-700 rounded-xl sm:rounded-full border border-slate-200 hover:border-purple-300 transition-all shadow-2xs cursor-pointer"
+                  className="hidden md:flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-700 bg-slate-50 hover:bg-purple-50 hover:text-purple-700 rounded-full border border-slate-200 hover:border-purple-300 transition-all shadow-2xs cursor-pointer"
                   title="Google Sheets Database Connection"
                 >
                   <Table className="w-3.5 h-3.5 text-emerald-600" />
                   <span className="hidden lg:inline">
                     {settings.googleAppsScriptUrl ? 'Google Sheet Synced' : 'Connect Google Sheet'}
                   </span>
-                  <span className="hidden sm:inline lg:hidden">Sheets</span>
+                  <span className="lg:hidden">Sheets</span>
                   <span
                     className={`w-1.5 h-1.5 rounded-full ${
                       settings.googleAppsScriptUrl ? 'bg-emerald-500 animate-pulse' : 'bg-amber-400'
