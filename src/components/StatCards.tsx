@@ -1,6 +1,7 @@
 import React from 'react';
 import { useApp } from '../context/AppContext';
 import { Sale } from '../types';
+import { getBangladeshWeekDays, getDhakaYMD } from '../utils/salesDateUtils';
 import {
   TrendingUp,
   Calendar,
@@ -47,13 +48,12 @@ export const StatCards: React.FC = () => {
     .filter(isSaleToday)
     .reduce((acc, s) => acc + s.grandTotal, 0);
 
-  // Week Sales (rolling last 7 days)
-  const sevenDaysAgo = now - 7 * 24 * 60 * 60 * 1000;
+  // Current Week Sales (Bangladesh business calendar: Saturday to Friday)
+  const { startDateYmd, endDateYmd, formattedRange } = getBangladeshWeekDays(0, now);
   const isSaleThisWeek = (s: Sale) => {
-    if (s.timestamp && !isNaN(s.timestamp)) {
-      return s.timestamp >= sevenDaysAgo;
-    }
-    return isSaleToday(s);
+    const saleYmd = s.timestamp ? getDhakaYMD(s.timestamp) : getDhakaYMD(s.createdAtDate);
+    if (!saleYmd) return isSaleToday(s);
+    return saleYmd >= startDateYmd && saleYmd <= endDateYmd;
   };
 
   const weekSales = relevantSales
@@ -121,7 +121,7 @@ export const StatCards: React.FC = () => {
             <div className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
               ৳{weekSales.toLocaleString()}
             </div>
-            <p className="text-[11px] text-slate-600 mt-1 font-medium">Rolling 7-day revenue</p>
+            <p className="text-[11px] text-slate-600 mt-1 font-medium">Sat – Fri ({formattedRange})</p>
           </div>
 
           {/* This Month */}
@@ -259,7 +259,7 @@ export const StatCards: React.FC = () => {
         <div className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
           ৳{weekSales.toLocaleString()}
         </div>
-        <p className="text-[11px] text-slate-600 mt-1 font-medium">Last 7 days performance</p>
+        <p className="text-[11px] text-slate-600 mt-1 font-medium">Sat – Fri ({formattedRange})</p>
       </div>
 
       {/* This Month */}
