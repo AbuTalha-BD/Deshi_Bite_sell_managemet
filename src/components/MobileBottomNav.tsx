@@ -90,7 +90,7 @@ export const MobileBottomNav: React.FC = () => {
         }`}
       >
         <Package className="w-5 h-5" />
-        <span className="text-[10px]">Products</span>
+        <span className="text-[10px]">Product</span>
       </button>
 
       {/* Prominent Sell Product button for Agent */}

@@ -493,8 +493,8 @@ export const SellModal: React.FC = () => {
                         <span className="text-[9px] text-rose-500 font-normal">({stockLabel})</span>
                       </div>
                     ) : (
-                      <div className="text-[10px] text-slate-600 mt-0.5 font-medium">
-                        Stock: <span className="font-bold text-slate-900">{stockLabel}</span>
+                      <div className="text-[10px] text-emerald-600 mt-0.5 font-medium">
+                        Stock: <span className="font-bold text-emerald-600">{stockLabel}</span>
                       </div>
                     )}
                   </button>
@@ -511,9 +511,9 @@ export const SellModal: React.FC = () => {
                   <span className="text-xs font-bold text-purple-900 uppercase">Selected Product:</span>
                   <span className="text-sm font-extrabold text-slate-900 ml-2">{selectedProduct.name}</span>
                 </div>
-                <div className="text-xs font-semibold text-slate-600">
+                <div className="text-xs font-semibold text-emerald-600">
                   Stock:{' '}
-                  <span className="font-bold text-slate-900">
+                  <span className="font-bold text-emerald-600">
                     {selectedUnit === 'KG' ? `${selectedProduct.stockKg} KG` : `${selectedProduct.stockPcs} PCS`}
                   </span>
                 </div>

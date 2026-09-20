@@ -32,7 +32,7 @@ export const NavigationTabs: React.FC = () => {
       icon: Users,
       badge: notifications.filter((n) => !n.isRead && n.type === 'AGENT_REGISTERED').length || undefined,
     },
-    { id: 'products', label: 'Products', icon: Package },
+    { id: 'products', label: 'Product', icon: Package },
     { id: 'stock', label: 'Stock Management', icon: Boxes },
     { id: 'sales', label: 'All Sales & Invoices', icon: ShoppingCart },
     { id: 'due', label: 'Due & Payments', icon: DollarSign },
@@ -42,7 +42,7 @@ export const NavigationTabs: React.FC = () => {
 
   const agentTabs: TabItem[] = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { id: 'products', label: 'Products Catalog', icon: Package },
+    { id: 'products', label: 'Product', icon: Package },
     { id: 'sales', label: 'My Sales & Memos', icon: ShoppingCart },
     { id: 'due', label: 'My Due & Payments', icon: DollarSign },
     { id: 'settings', label: 'Settings', icon: Settings },

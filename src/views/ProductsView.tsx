@@ -69,7 +69,7 @@ export const ProductsView: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">
-            {isAdmin ? 'Product Inventory & Pricing' : 'Available Products Catalog'}
+            {isAdmin ? 'Product Inventory & Pricing' : 'Available Products'}
           </h2>
           <p className="text-xs text-slate-600 font-medium">
             {isAdmin
@@ -217,7 +217,11 @@ export const ProductsView: React.FC = () => {
                       <div className="inline-flex flex-col items-center">
                         <span
                           className={`font-mono font-extrabold px-2 py-0.5 rounded-md ${
-                            isLow ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-800'
+                            isLow
+                              ? 'bg-amber-100 text-amber-800'
+                              : p.stockKg > 0 || p.stockPcs > 0
+                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200/80'
+                              : 'bg-slate-100 text-slate-800'
                           }`}
                         >
                           {p.stockKg} KG &bull; {p.stockPcs} PCS

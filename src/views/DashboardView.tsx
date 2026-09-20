@@ -187,13 +187,13 @@ export const DashboardView: React.FC = () => {
                 <div className="w-7 h-7 rounded-xl bg-purple-50 text-purple-700 flex items-center justify-center">
                   <Package className="w-4 h-4" />
                 </div>
-                <h3 className="text-xs font-extrabold text-slate-900 uppercase tracking-wider">Top Catalog Items</h3>
+                <h3 className="text-xs font-extrabold text-slate-900 uppercase tracking-wider">Top Products</h3>
               </div>
               <button
                 onClick={() => setActiveTab('products')}
                 className="text-xs font-bold text-purple-700 hover:text-purple-900 cursor-pointer"
               >
-                View Catalog &rarr;
+                View Products &rarr;
               </button>
             </div>
 
