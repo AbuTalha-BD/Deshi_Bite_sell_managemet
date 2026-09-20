@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { BarChart3 } from 'lucide-react';
 import { getBangladeshWeekDays, getDhakaYMD } from '../utils/salesDateUtils';
@@ -8,11 +8,21 @@ export const WeeklySalesChart: React.FC = () => {
   const isAdmin = currentUser?.role === 'ADMIN';
   const [activeWeekTab, setActiveWeekTab] = useState<'THIS_WEEK' | 'LAST_WEEK'>('THIS_WEEK');
 
+  // Live timer to automatically roll over to new week at Saturday 00:00 Dhaka time
+  const [currentTime, setCurrentTime] = useState<number>(Date.now());
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(Date.now());
+    }, 30000);
+    return () => clearInterval(timer);
+  }, []);
+
   const relevantSales = isAdmin ? sales : sales.filter((s) => s.agentId === currentUser?.id);
 
   // Compute week days based on selected week tab (0 for this week, -1 for last week)
   const weekOffset = activeWeekTab === 'THIS_WEEK' ? 0 : -1;
-  const { days, formattedRange } = getBangladeshWeekDays(weekOffset);
+  const { days, formattedRange } = getBangladeshWeekDays(weekOffset, currentTime);
 
   // Map of dateYmd -> DayBucket
   const daysByYmd = new Map(days.map((d) => [d.dateYmd, { ...d }]));

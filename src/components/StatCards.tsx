@@ -1,7 +1,12 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { Sale } from '../types';
-import { getBangladeshWeekDays, getDhakaYMD } from '../utils/salesDateUtils';
+import {
+  getBangladeshWeekDays,
+  getDhakaYMD,
+  getBangladeshMonthInfo,
+  isSaleInDhakaMonth,
+} from '../utils/salesDateUtils';
 import {
   TrendingUp,
   Calendar,
@@ -18,28 +23,33 @@ export const StatCards: React.FC = () => {
   const { currentUser, sales, products, users } = useApp();
   const isAdmin = currentUser?.role === 'ADMIN';
 
+  // Live timer state: automatically refreshes at midnight, at weekly reset (Saturday),
+  // and at monthly reset (1st of the month) in Asia/Dhaka time without requiring manual reload.
+  const [currentTime, setCurrentTime] = useState<number>(Date.now());
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(Date.now());
+    }, 30000); // Ticks every 30 seconds
+    return () => clearInterval(timer);
+  }, []);
+
   // Filter sales for this agent if Agent
   const relevantSales = isAdmin ? sales : sales.filter((s) => s.agentId === currentUser?.id);
 
   // Accurate Today, Week, and Month calculations in Asia/Dhaka timezone
-  const now = Date.now();
+  const todayYmd = getDhakaYMD(currentTime);
   const todayDhaka = new Intl.DateTimeFormat('en-GB', {
     timeZone: 'Asia/Dhaka',
     day: 'numeric',
     month: 'long',
     year: 'numeric',
-  }).format(new Date(now));
+  }).format(new Date(currentTime));
 
   const isSaleToday = (s: Sale) => {
     if (s.createdAtDate === todayDhaka) return true;
     if (s.timestamp && !isNaN(s.timestamp)) {
-      const saleDate = new Intl.DateTimeFormat('en-GB', {
-        timeZone: 'Asia/Dhaka',
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric',
-      }).format(new Date(s.timestamp));
-      return saleDate === todayDhaka;
+      return getDhakaYMD(s.timestamp) === todayYmd;
     }
     return false;
   };
@@ -49,7 +59,7 @@ export const StatCards: React.FC = () => {
     .reduce((acc, s) => acc + s.grandTotal, 0);
 
   // Current Week Sales (Bangladesh business calendar: Saturday to Friday)
-  const { startDateYmd, endDateYmd, formattedRange } = getBangladeshWeekDays(0, now);
+  const { startDateYmd, endDateYmd, formattedRange } = getBangladeshWeekDays(0, currentTime);
   const isSaleThisWeek = (s: Sale) => {
     const saleYmd = s.timestamp ? getDhakaYMD(s.timestamp) : getDhakaYMD(s.createdAtDate);
     if (!saleYmd) return isSaleToday(s);
@@ -61,14 +71,11 @@ export const StatCards: React.FC = () => {
     .reduce((acc, s) => acc + s.grandTotal, 0);
 
   // Month Sales (current calendar month in Asia/Dhaka)
-  const currentMonthYear = new Intl.DateTimeFormat('en-GB', {
-    timeZone: 'Asia/Dhaka',
-    month: 'long',
-    year: 'numeric',
-  }).format(new Date(now));
+  const { yearMonthYm, fullMonthName } = getBangladeshMonthInfo(currentTime);
+  const isSaleThisMonth = (s: Sale) => isSaleInDhakaMonth(s, yearMonthYm, fullMonthName);
 
   const monthSales = relevantSales
-    .filter((s) => s.createdAtDate?.includes(currentMonthYear))
+    .filter(isSaleThisMonth)
     .reduce((acc, s) => acc + s.grandTotal, 0);
 
   // Total Lifetime Sales
@@ -135,7 +142,7 @@ export const StatCards: React.FC = () => {
             <div className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
               ৳{monthSales.toLocaleString()}
             </div>
-            <p className="text-[11px] text-slate-600 mt-1 font-medium">Current calendar month</p>
+            <p className="text-[11px] text-slate-600 mt-1 font-medium">{fullMonthName}</p>
           </div>
 
           {/* Total Sales */}
@@ -273,7 +280,7 @@ export const StatCards: React.FC = () => {
         <div className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
           ৳{monthSales.toLocaleString()}
         </div>
-        <p className="text-[11px] text-slate-600 mt-1 font-medium">Calendar month revenue</p>
+        <p className="text-[11px] text-slate-600 mt-1 font-medium">{fullMonthName}</p>
       </div>
 
       {/* Current Due */}

@@ -149,3 +149,51 @@ export function getBangladeshWeekDays(
     formattedRange,
   };
 }
+
+/**
+ * Get current Bangladesh month information (e.g. YYYY-MM, 'September 2026', 'Sep 2026')
+ */
+export function getBangladeshMonthInfo(referenceNow: number = Date.now()) {
+  const d = new Date(referenceNow);
+  const ymFormatter = new Intl.DateTimeFormat('en-CA', {
+    timeZone: BANGLADESH_TIMEZONE,
+    year: 'numeric',
+    month: '2-digit',
+  });
+  const fullMonthFormatter = new Intl.DateTimeFormat('en-GB', {
+    timeZone: BANGLADESH_TIMEZONE,
+    month: 'long',
+    year: 'numeric',
+  });
+  const shortMonthFormatter = new Intl.DateTimeFormat('en-GB', {
+    timeZone: BANGLADESH_TIMEZONE,
+    month: 'short',
+    year: 'numeric',
+  });
+
+  return {
+    yearMonthYm: ymFormatter.format(d), // "2026-09"
+    fullMonthName: fullMonthFormatter.format(d), // "September 2026"
+    shortMonthName: shortMonthFormatter.format(d), // "Sep 2026"
+  };
+}
+
+/**
+ * Check if a sale belongs to a specific calendar month (in Asia/Dhaka)
+ */
+export function isSaleInDhakaMonth(
+  sale: { timestamp?: number; createdAtDate?: string },
+  yearMonthYm: string,
+  fullMonthName: string
+): boolean {
+  if (sale.timestamp && !isNaN(sale.timestamp)) {
+    const saleYm = getDhakaYMD(sale.timestamp).substring(0, 7);
+    if (saleYm === yearMonthYm) return true;
+  }
+  if (sale.createdAtDate) {
+    if (sale.createdAtDate.includes(fullMonthName)) return true;
+    const fallbackYm = getDhakaYMD(sale.createdAtDate).substring(0, 7);
+    if (fallbackYm === yearMonthYm) return true;
+  }
+  return false;
+}
