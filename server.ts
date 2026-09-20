@@ -101,6 +101,18 @@ function loadDatabase(): DatabaseSchema {
     loaded.payments.forEach((p) => {
       if (!p.createdAtDate && p.date) p.createdAtDate = p.date;
       if (!p.createdAtTime && p.time) p.createdAtTime = p.time;
+      if (!p.date && p.createdAtDate) p.date = p.createdAtDate;
+      if (!p.time && p.createdAtTime) p.time = p.createdAtTime;
+    });
+  }
+
+  // Ensure stock transaction dates are populated
+  if (loaded.stockTransactions) {
+    loaded.stockTransactions.forEach((tx) => {
+      if (!tx.createdAtDate && tx.date) tx.createdAtDate = tx.date;
+      if (!tx.createdAtTime && tx.time) tx.createdAtTime = tx.time;
+      if (!tx.date && tx.createdAtDate) tx.date = tx.createdAtDate;
+      if (!tx.time && tx.createdAtTime) tx.time = tx.createdAtTime;
     });
   }
 
@@ -701,11 +713,13 @@ async function startServer() {
     // 1. Deduct Stock & Record Stock Transactions
     for (const item of frozenItems) {
       const prod = db.products.find((p) => p.id === item.productId)!;
+      const stockBefore = item.unit === 'KG' ? prod.stockKg : prod.stockPcs;
       if (item.unit === 'KG') {
         prod.stockKg = Number((prod.stockKg - item.quantity).toFixed(3));
       } else {
         prod.stockPcs = Math.max(0, prod.stockPcs - item.quantity);
       }
+      const stockAfter = item.unit === 'KG' ? prod.stockKg : prod.stockPcs;
 
       db.stockTransactions.unshift({
         id: `STX-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
@@ -718,7 +732,11 @@ async function startServer() {
         recordedBy: agent.name,
         date: dt.date,
         time: dt.time,
+        createdAtDate: dt.date,
+        createdAtTime: dt.time,
         timestamp: dt.timestamp,
+        stockBefore,
+        stockAfter,
       });
 
       // Check Low Stock Threshold
@@ -800,6 +818,7 @@ async function startServer() {
       return res.status(400).json({ error: 'Valid positive quantity required' });
     }
 
+    const stockBefore = unit === 'KG' ? prod.stockKg : prod.stockPcs;
     if (unit === 'KG') {
       if (type === 'STOCK_IN' || type === 'RETURN') {
         prod.stockKg = Number((prod.stockKg + numQty).toFixed(3));
@@ -813,6 +832,7 @@ async function startServer() {
         prod.stockPcs = Math.max(0, prod.stockPcs - Math.round(numQty));
       }
     }
+    const stockAfter = unit === 'KG' ? prod.stockKg : prod.stockPcs;
 
     const dt = getBangladeshDateTime();
     const stx: StockTransaction = {
@@ -826,7 +846,11 @@ async function startServer() {
       recordedBy: recordedBy || 'Admin Manager',
       date: dt.date,
       time: dt.time,
+      createdAtDate: dt.date,
+      createdAtTime: dt.time,
       timestamp: dt.timestamp,
+      stockBefore,
+      stockAfter,
     };
 
     db.stockTransactions.unshift(stx);

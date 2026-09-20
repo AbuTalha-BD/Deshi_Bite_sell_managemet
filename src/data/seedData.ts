@@ -307,6 +307,10 @@ export const INITIAL_STOCK_TRANSACTIONS: StockTransaction[] = [
     recordedBy: 'Admin Manager',
     date: '14 September 2026',
     time: '09:00 AM',
+    createdAtDate: '14 September 2026',
+    createdAtTime: '09:00 AM',
+    stockBefore: 0,
+    stockAfter: 20,
     timestamp: 1789376400000,
   },
   {
@@ -320,6 +324,10 @@ export const INITIAL_STOCK_TRANSACTIONS: StockTransaction[] = [
     recordedBy: 'Admin Manager',
     date: '15 September 2026',
     time: '08:30 AM',
+    createdAtDate: '15 September 2026',
+    createdAtTime: '08:30 AM',
+    stockBefore: 0,
+    stockAfter: 15,
     timestamp: 1789461000000,
   },
   {
@@ -333,6 +341,10 @@ export const INITIAL_STOCK_TRANSACTIONS: StockTransaction[] = [
     recordedBy: 'Rahim Ahmed',
     date: '15 September 2026',
     time: '11:30 AM',
+    createdAtDate: '15 September 2026',
+    createdAtTime: '11:30 AM',
+    stockBefore: 20,
+    stockAfter: 18,
     timestamp: 1789474200000,
   },
 ];

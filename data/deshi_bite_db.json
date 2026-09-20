@@ -96,14 +96,14 @@
       "name": "Dal Puri",
       "retailPriceKg": null,
       "retailPricePcs": 10,
-      "wholesalePriceKg": 200,
+      "wholesalePriceKg": null,
       "wholesalePricePcs": 8,
       "stockKg": 0,
       "stockPcs": 66,
       "lowStockThresholdKg": 0,
       "lowStockThresholdPcs": 15,
       "active": true,
-      "updatedAt": "17 September 2026"
+      "updatedAt": "20 September 2026"
     },
     {
       "id": "PROD-1009",
@@ -354,6 +354,10 @@
       "recordedBy": "Toha Jamil",
       "date": "17 September 2026",
       "time": "07:59 PM",
+      "createdAtDate": "17 September 2026",
+      "createdAtTime": "07:59 PM",
+      "stockBefore": 2,
+      "stockAfter": 1,
       "timestamp": 1789653576056
     },
     {
@@ -367,6 +371,10 @@
       "recordedBy": "Toha Jamil",
       "date": "17 September 2026",
       "time": "07:59 PM",
+      "createdAtDate": "17 September 2026",
+      "createdAtTime": "07:59 PM",
+      "stockBefore": 12.5,
+      "stockAfter": 12,
       "timestamp": 1789653576056
     },
     {
@@ -380,6 +388,10 @@
       "recordedBy": "Admin Manager",
       "date": "14 September 2026",
       "time": "09:00 AM",
+      "createdAtDate": "14 September 2026",
+      "createdAtTime": "09:00 AM",
+      "stockBefore": 0,
+      "stockAfter": 20,
       "timestamp": 1789376400000
     },
     {
@@ -393,6 +405,10 @@
       "recordedBy": "Admin Manager",
       "date": "15 September 2026",
       "time": "08:30 AM",
+      "createdAtDate": "15 September 2026",
+      "createdAtTime": "08:30 AM",
+      "stockBefore": 0,
+      "stockAfter": 15,
       "timestamp": 1789461000000
     },
     {
@@ -406,6 +422,10 @@
       "recordedBy": "Rahim Ahmed",
       "date": "15 September 2026",
       "time": "11:30 AM",
+      "createdAtDate": "15 September 2026",
+      "createdAtTime": "11:30 AM",
+      "stockBefore": 20,
+      "stockAfter": 18,
       "timestamp": 1789474200000
     }
   ],
@@ -422,7 +442,9 @@
       "recordedBy": "Admin Manager",
       "date": "17 September 2026",
       "time": "08:07 PM",
-      "timestamp": 1789654074724
+      "timestamp": 1789654074724,
+      "createdAtDate": "17 September 2026",
+      "createdAtTime": "08:07 PM"
     },
     {
       "id": "PAY-20260916-8920",
@@ -436,7 +458,9 @@
       "recordedBy": "Admin Manager",
       "date": "16 September 2026",
       "time": "02:40 PM",
-      "timestamp": 1789569600000
+      "timestamp": 1789569600000,
+      "createdAtDate": "16 September 2026",
+      "createdAtTime": "02:40 PM"
     },
     {
       "id": "PAY-20260916-5302",
@@ -450,7 +474,9 @@
       "recordedBy": "Admin Manager",
       "date": "16 September 2026",
       "time": "02:39 PM",
-      "timestamp": 1789569540000
+      "timestamp": 1789569540000,
+      "createdAtDate": "16 September 2026",
+      "createdAtTime": "02:39 PM"
     },
     {
       "id": "PAY-20260915-001",
@@ -464,7 +490,9 @@
       "recordedBy": "Admin Manager",
       "date": "15 September 2026",
       "time": "04:20 PM",
-      "timestamp": 1789491600000
+      "timestamp": 1789491600000,
+      "createdAtDate": "15 September 2026",
+      "createdAtTime": "04:20 PM"
     }
   ],
   "notifications": [
@@ -473,7 +501,7 @@
       "title": "Payment Received & Due Updated",
       "message": "Admin recorded payment of ৳500. Your remaining due is now ৳400.",
       "type": "SUCCESS",
-      "isRead": false,
+      "isRead": true,
       "date": "17 September 2026",
       "time": "08:07 PM",
       "targetRole": "AGENT",
@@ -485,7 +513,7 @@
       "title": "Low Stock Alert",
       "message": "Borfi stock has fallen to   (below threshold).",
       "type": "ALERT",
-      "isRead": false,
+      "isRead": true,
       "date": "17 September 2026",
       "time": "07:59 PM",
       "targetRole": "ADMIN",
@@ -496,7 +524,7 @@
       "title": "New Agent Registration Pending",
       "message": "Toha Jamil (01763213388) has applied for an agent account.",
       "type": "INFO",
-      "isRead": false,
+      "isRead": true,
       "date": "17 September 2026",
       "time": "07:58 PM",
       "targetRole": "ADMIN",
@@ -537,6 +565,17 @@
     }
   ],
   "logs": [
+    {
+      "id": "LOG-1789907712110",
+      "user": "Admin Manager",
+      "role": "ADMIN",
+      "action": "Product Updated",
+      "referenceId": "PROD-1008",
+      "details": "Updated details/pricing for \"Dal Puri\"",
+      "date": "20 September 2026",
+      "time": "06:35 PM",
+      "timestamp": 1789907712109
+    },
     {
       "id": "LOG-1789654855313",
       "user": "Admin Manager",
