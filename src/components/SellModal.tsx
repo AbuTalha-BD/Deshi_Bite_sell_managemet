@@ -51,6 +51,7 @@ export const SellModal: React.FC = () => {
   // Confirmation state
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [stockAlert, setStockAlert] = useState<string | null>(null);
 
   // Filter products by active status and search
   const availableProducts = useMemo(() => {
@@ -80,25 +81,89 @@ export const SellModal: React.FC = () => {
     };
   }, [selectedProduct, saleType]);
 
+  // Helper to determine stock availability for a product in current sale type
+  const getProductStockInfo = (prod: Product) => {
+    const priceKg = saleType === 'RETAIL' ? prod.retailPriceKg : prod.wholesalePriceKg;
+    const pricePcs = saleType === 'RETAIL' ? prod.retailPricePcs : prod.wholesalePricePcs;
+
+    const hasKgRate = priceKg !== null && priceKg !== undefined && priceKg > 0;
+    const hasPcsRate = pricePcs !== null && pricePcs !== undefined && pricePcs > 0;
+
+    const availableKg = prod.stockKg !== undefined ? prod.stockKg : 0;
+    const availablePcs = prod.stockPcs !== undefined ? prod.stockPcs : 0;
+
+    // Out of stock if no sellable unit has stock > 0, or if no rates exist
+    const isOutOfStock =
+      (!hasKgRate && !hasPcsRate) ||
+      ((hasKgRate ? availableKg <= 0 : true) && (hasPcsRate ? availablePcs <= 0 : true));
+
+    let availableText = '';
+    if (hasKgRate && hasPcsRate) {
+      if (availableKg > 0 && availablePcs > 0) {
+        availableText = `${availableKg} KG / ${availablePcs} PCS`;
+      } else if (availableKg > 0) {
+        availableText = `${availableKg} KG`;
+      } else if (availablePcs > 0) {
+        availableText = `${availablePcs} PCS`;
+      } else {
+        availableText = `0 KG`;
+      }
+    } else if (hasKgRate) {
+      availableText = `${availableKg} KG`;
+    } else if (hasPcsRate) {
+      availableText = `${availablePcs} PCS`;
+    } else if (prod.retailPriceKg || prod.wholesalePriceKg) {
+      availableText = `${availableKg} KG`;
+    } else {
+      availableText = `${availablePcs} PCS`;
+    }
+
+    const stockLabel = availableText;
+
+    return {
+      priceKg,
+      pricePcs,
+      hasKgRate,
+      hasPcsRate,
+      availableKg,
+      availablePcs,
+      isOutOfStock,
+      stockLabel,
+      availableText,
+    };
+  };
+
   // When selected product changes or sale type changes, auto select the available unit
   const handleSelectProduct = (prod: Product) => {
+    const { isOutOfStock, hasKgRate, hasPcsRate, availableKg, availablePcs, availableText } =
+      getProductStockInfo(prod);
+
+    // If out of stock, do NOT select it, but trigger popup notification alert
+    if (isOutOfStock) {
+      const alertMsg = `Insufficient stock! Available: ${availableText}.`;
+      showToast(alertMsg, 'error');
+      setStockAlert(alertMsg);
+      // Auto dismiss in-modal alert after 4 seconds
+      setTimeout(() => {
+        setStockAlert((prev) => (prev === alertMsg ? null : prev));
+      }, 4000);
+      return;
+    }
+
+    setStockAlert(null);
     setSelectedProduct(prod);
 
-    const kgPrice = saleType === 'RETAIL' ? prod.retailPriceKg : prod.wholesalePriceKg;
-    const pcsPrice = saleType === 'RETAIL' ? prod.retailPricePcs : prod.wholesalePricePcs;
-
-    if (kgPrice && !pcsPrice) {
+    if (hasKgRate && availableKg > 0 && (!hasPcsRate || availablePcs <= 0)) {
       setSelectedUnit('KG');
-      setQuantity(1);
-    } else if (pcsPrice && !kgPrice) {
+      setQuantity(Math.min(1, availableKg));
+    } else if (hasPcsRate && availablePcs > 0 && (!hasKgRate || availableKg <= 0)) {
       setSelectedUnit('PCS');
-      setQuantity(10);
-    } else if (kgPrice && pcsPrice) {
+      setQuantity(Math.min(10, availablePcs));
+    } else if (hasKgRate && availableKg > 0) {
       setSelectedUnit('KG');
-      setQuantity(1);
+      setQuantity(Math.min(1, availableKg));
     } else {
-      // Fallback
-      setSelectedUnit(prod.stockKg > 0 ? 'KG' : 'PCS');
+      setSelectedUnit(availableKg > 0 ? 'KG' : 'PCS');
       setQuantity(1);
     }
   };
@@ -356,33 +421,82 @@ export const SellModal: React.FC = () => {
               </div>
             </div>
 
+            {/* Popup Notification Alert inside modal */}
+            {stockAlert && (
+              <div className="mb-3 flex items-center justify-between gap-2.5 p-3 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-bold shadow-xs animate-in fade-in slide-in-from-top-2">
+                <div className="flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                  <span>{stockAlert}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setStockAlert(null)}
+                  className="text-rose-400 hover:text-rose-700 p-1 rounded-lg hover:bg-rose-100 transition-colors cursor-pointer shrink-0"
+                  aria-label="Close alert"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            )}
+
             {/* Product selection grid */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 max-h-48 overflow-y-auto p-1 border border-slate-100 rounded-2xl bg-slate-50/30">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 max-h-56 overflow-y-auto p-1 border border-slate-100 rounded-2xl bg-slate-50/30">
               {availableProducts.map((prod) => {
                 const isSelected = selectedProduct?.id === prod.id;
-                const priceKg = saleType === 'RETAIL' ? prod.retailPriceKg : prod.wholesalePriceKg;
-                const pricePcs = saleType === 'RETAIL' ? prod.retailPricePcs : prod.wholesalePricePcs;
-
-                const hasRate = priceKg || pricePcs;
+                const { priceKg, pricePcs, isOutOfStock, stockLabel } = getProductStockInfo(prod);
 
                 return (
                   <button
                     key={prod.id}
                     type="button"
                     onClick={() => handleSelectProduct(prod)}
-                    className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
-                      isSelected
-                        ? 'border-purple-600 bg-purple-100/70 shadow-xs'
-                        : 'border-slate-200 bg-white hover:border-purple-200'
+                    className={`p-2.5 sm:p-3 rounded-xl border text-left transition-all relative flex flex-col justify-between cursor-pointer active:scale-98 ${
+                      isOutOfStock
+                        ? 'border-rose-200/80 bg-rose-50/25 hover:bg-rose-50/60 hover:border-rose-300'
+                        : isSelected
+                        ? 'border-purple-600 bg-purple-100/70 shadow-xs ring-1 ring-purple-600'
+                        : 'border-slate-200 bg-white hover:border-purple-300 hover:shadow-2xs'
                     }`}
+                    title={
+                      isOutOfStock
+                        ? `${prod.name} (Out of Stock - Click to view available stock)`
+                        : `Select ${prod.name}`
+                    }
                   >
-                    <div className="text-xs font-bold text-slate-900 truncate">{prod.name}</div>
-                    <div className="text-[11px] font-semibold text-purple-700 mt-1">
+                    <div className="flex items-start justify-between gap-1.5 w-full">
+                      <div
+                        className={`text-xs font-bold truncate flex-1 ${
+                          isOutOfStock ? 'text-slate-700' : 'text-slate-900'
+                        }`}
+                        title={prod.name}
+                      >
+                        {prod.name}
+                      </div>
+                      {isOutOfStock && (
+                        <span className="px-1.5 py-0.5 rounded-md text-[9px] font-bold bg-rose-100 text-rose-700 border border-rose-200/80 whitespace-nowrap shrink-0">
+                          Out of Stock
+                        </span>
+                      )}
+                    </div>
+
+                    <div
+                      className={`text-[11px] font-semibold mt-1 ${
+                        isOutOfStock ? 'text-slate-500' : 'text-purple-700'
+                      }`}
+                    >
                       {priceKg ? `৳${priceKg} / KG` : pricePcs ? `৳${pricePcs} / PCS` : 'No Rate'}
                     </div>
-                    <div className="text-[10px] text-slate-600 mt-0.5">
-                      Stock: {prod.stockKg > 0 ? `${prod.stockKg} KG` : `${prod.stockPcs} PCS`}
-                    </div>
+
+                    {isOutOfStock ? (
+                      <div className="text-[10px] font-semibold text-rose-600 mt-0.5 flex items-center justify-between">
+                        <span>Out of Stock</span>
+                        <span className="text-[9px] text-rose-500 font-normal">({stockLabel})</span>
+                      </div>
+                    ) : (
+                      <div className="text-[10px] text-slate-600 mt-0.5 font-medium">
+                        Stock: <span className="font-bold text-slate-900">{stockLabel}</span>
+                      </div>
+                    )}
                   </button>
                 );
               })}
@@ -416,16 +530,24 @@ export const SellModal: React.FC = () => {
                       <button
                         type="button"
                         onClick={() => {
+                          if (selectedProduct.stockKg <= 0) {
+                            const alertMsg = `Insufficient stock! Available: 0 KG.`;
+                            showToast(alertMsg, 'error');
+                            setStockAlert(alertMsg);
+                            return;
+                          }
                           setSelectedUnit('KG');
                           setQuantity(1);
                         }}
                         className={`flex-1 py-2 px-3 rounded-xl font-bold text-xs border transition-all cursor-pointer ${
-                          selectedUnit === 'KG'
+                          selectedProduct.stockKg <= 0
+                            ? 'bg-rose-50/50 text-rose-700 border-rose-200 hover:bg-rose-50 hover:border-rose-300'
+                            : selectedUnit === 'KG'
                             ? 'bg-purple-600 text-white border-purple-600 shadow-xs'
                             : 'bg-white text-slate-700 border-slate-200 hover:border-purple-300'
                         }`}
                       >
-                        KG (৳{productPricing.kgPrice})
+                        KG (৳{productPricing.kgPrice}) {selectedProduct.stockKg <= 0 && '(0 KG - Out of Stock)'}
                       </button>
                     )}
 
@@ -433,16 +555,24 @@ export const SellModal: React.FC = () => {
                       <button
                         type="button"
                         onClick={() => {
+                          if (selectedProduct.stockPcs <= 0) {
+                            const alertMsg = `Insufficient stock! Available: 0 PCS.`;
+                            showToast(alertMsg, 'error');
+                            setStockAlert(alertMsg);
+                            return;
+                          }
                           setSelectedUnit('PCS');
                           setQuantity(10);
                         }}
                         className={`flex-1 py-2 px-3 rounded-xl font-bold text-xs border transition-all cursor-pointer ${
-                          selectedUnit === 'PCS'
+                          selectedProduct.stockPcs <= 0
+                            ? 'bg-rose-50/50 text-rose-700 border-rose-200 hover:bg-rose-50 hover:border-rose-300'
+                            : selectedUnit === 'PCS'
                             ? 'bg-purple-600 text-white border-purple-600 shadow-xs'
                             : 'bg-white text-slate-700 border-slate-200 hover:border-purple-300'
                         }`}
                       >
-                        PCS (৳{productPricing.pcsPrice})
+                        PCS (৳{productPricing.pcsPrice}) {selectedProduct.stockPcs <= 0 && '(0 PCS - Out of Stock)'}
                       </button>
                     )}
 
